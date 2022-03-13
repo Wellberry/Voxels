@@ -46,6 +46,11 @@ Vec sum(Vec a, Vec b){
     return res;
 }
 
+Vec sub(Vec a, Vec b){
+    Vec res(a.x-b.x, a.y-b.y, a.z-b.z);
+    return res;
+}
+
 Vec scalar(Vec a, double value){
     Vec res = a;
     res.scale(value);

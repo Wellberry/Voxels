@@ -3,49 +3,32 @@
 #include "../lib/Linal.h"
 #include <fstream>
 
-// void printVec(Vec v){
-//     std::cout << v.x << "\t";
-//     std::cout << v.y << "\t";
-//     std::cout << v.z << "\t";
-//     std::cout << "\n";
-// }
+void printVec(Vec v){
+    std::cout << v.x << "\t";
+    std::cout << v.y << "\t";
+    std::cout << v.z << "\t";
+    std::cout << "\n";
+}
 
 struct Cube{
-    Vec pos = Vec(0, 5, 0);
-    Vec dir1 = Vec(0, 0, 2);
-    Vec dir2 = cross(Vec(0, 2, 0), dir1).setLength(dir1.length);
-    Vec dir3 = cross(dir1, dir2).setLength(dir1.length);
+    Vec pos = Vec(-5, 0, 0);
+    Vec w = Vec(0, 2, 0);
+    Vec h = cross(Vec(2, 0, 0), w).setLength(w.length);
+    Vec d = cross(h, w).setLength(w.length);
 
-    Vec is_cross(Vec cam, Vec ray){
-        if( dot(ray, dir1)!=0){
-            Vec to_cube = sum(pos, scalar(cam, -1));
-            double t = dot(to_cube, dir1)/dot(ray, dir1);
-            double t1 = dot(sum(to_cube, dir1), dir1)/dot(ray, dir1);
-            if (t>t1) t=t1;
-            Vec R = scalar(ray, t);// луч с такой длиной, который достаёт ровно до плоскости грани
-
-            // if( dot(ray, dir2)!=0 && dot(ray, dir3)!=0 ) {
-                double t_right = dot(to_cube, dir2)/dot(ray, dir2);
-                double t_left = dot(sum(to_cube, dir2), dir2)/dot(ray, dir2);
-                double t_up = dot(to_cube, dir3)/dot(ray, dir3);
-                double t_down = dot(sum(to_cube, dir3), dir3)/dot(ray, dir3);
-
-                Vec right = scalar(ray, t_right);
-                Vec left = scalar(ray, t_left);
-                if( (R.x-right.x)*(R.x-left.x)<0 &&
-                    (R.y-right.y)*(R.y-left.y)<0 &&
-                    (R.z-right.z)*(R.z-left.z)<0 )return R;
-
-                Vec up = scalar(ray, t_up);
-                Vec down = scalar(ray, t_down);
-                if( (R.x-up.x)*(R.x-down.x)<0 &&
-                    (R.y-up.y)*(R.y-down.y)<0 &&
-                    (R.z-up.z)*(R.z-down.z)<0 )return R;
-            // }
-            
+    Vec get_parameter(Vec ray, Vec CamPos, Vec Spos, Vec Swidth){
+        Vec res(0, 0, 0);
+        double denom = dot(ray, Swidth), t1, t2;
+        if(denom>1e-8){
+            t1 = dot(sub(Spos, CamPos), Swidth)/denom;
+            t2 = dot(sub(sum(Spos, Swidth), CamPos), Swidth)/denom;
+            if(t2<t1)t1=t2;
+            res = ray.scale(t1);
         }
-        return Vec(0, 0, 0);
+        return res;
     }
+
+
 };
 
 void createImage(int* screen, int w, int h){
@@ -71,16 +54,13 @@ int main(){
     
     int w = 400, h = 400;
     int* screen = new int[w*h*3];
+    Vec CamPos(5, 0, 0), CamDir(-5, 0, 0);
 
     Cube cube;
-    // printVec(cube.is_cross(Vec(0, 0, -1), Vec(0, 0.2, 1)));
 
-    for(int i=0;i<w;i++){
+    for(int i=0;i<w;++i){
         for (int j=0; j<h; ++j){
-            Vec ray(i-w/2, j-h/2, 5);// z - длина камеры
-            // if (cube.is_cross(Vec(0, 0, -5), ray).length!=0)printVec(cube.is_cross(Vec(0, 0, -5), ray));
-            // if (cube.is_cross(Vec(0, 0, -5), ray).length!=0) screen[(i*w+j)*3] = 255;
-            // else screen[(i*w+j)*3] = 0;
+            Vec ray = sum(Vec(i-w/2, j-h/2, 0), CamDir);
             // screen[(i*w+j)*3+1] = 0;
             // screen[(i*w+j)*3+2] = 0;
         }

@@ -15,6 +15,7 @@ public:
 double dot(Vec a, Vec b);
 Vec cross(Vec a, Vec b);
 Vec sum(Vec a, Vec b);
+Vec sub(Vec a, Vec b);
 Vec scalar(Vec a, double value);
 
 #endif
