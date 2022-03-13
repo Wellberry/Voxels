@@ -11,15 +11,16 @@ void printVec(Vec v){
 }
 
 struct Cube{
+public:
     Vec pos = Vec(-5, 0, 0);
     Vec w = Vec(0, 2, 0);
     Vec h = cross(Vec(2, 0, 0), w).setLength(w.length);
     Vec d = cross(h, w).setLength(w.length);
-
-    Vec get_parameter(Vec ray, Vec CamPos, Vec Spos, Vec Swidth){
+private:
+    Vec ray_to_surf(Vec ray, Vec CamPos, Vec Spos, Vec Swidth){
         Vec res(0, 0, 0);
         double denom = dot(ray, Swidth), t1, t2;
-        if(denom>1e-8){
+        if(denom!=0){
             t1 = dot(sub(Spos, CamPos), Swidth)/denom;
             t2 = dot(sub(sum(Spos, Swidth), CamPos), Swidth)/denom;
             if(t2<t1)t1=t2;
@@ -27,8 +28,27 @@ struct Cube{
         }
         return res;
     }
+public:
+    double is_on_cube(Vec ray, Vec CamPos){
+        Vec R = ray_to_surf(ray, CamPos, pos, w);
+        Vec vec_in_cube = sub(R, pos);
+        double fi_h =  dot(vec_in_cube, h)*dot(vec_in_cube, h) - dot(vec_in_cube, h)*h.squareLen();
+        double fi_d =  dot(vec_in_cube, d)*dot(vec_in_cube, d) - dot(vec_in_cube, d)*d.squareLen();
+        if(fi_h<=0 & fi_d<=0)return dot(ray.norm(), w.scale(-1).norm());
 
+        R = ray_to_surf(ray, CamPos, pos, h);
+        vec_in_cube = sub(R, pos);
+        double fi_w =  dot(vec_in_cube, w)*dot(vec_in_cube, w) - dot(vec_in_cube, w)*w.squareLen();
+        fi_d =  dot(vec_in_cube, d)*dot(vec_in_cube, d) - dot(vec_in_cube, d)*d.squareLen();
+        if(fi_w<=0 & fi_d<=0)return dot(ray.norm(), h.scale(-1).norm());
 
+        R = ray_to_surf(ray, CamPos, pos, d);
+        vec_in_cube = sub(R, pos);
+        fi_w =  dot(vec_in_cube, w)*dot(vec_in_cube, w) - dot(vec_in_cube, w)*w.squareLen();
+        fi_h =  dot(vec_in_cube, h)*dot(vec_in_cube, h) - dot(vec_in_cube, h)*h.squareLen();
+        if(fi_w<=0 & fi_h<=0)return dot(ray.norm(), d.scale(-1).norm());
+        return 0;
+    }
 };
 
 void createImage(int* screen, int w, int h){
@@ -61,8 +81,11 @@ int main(){
     for(int i=0;i<w;++i){
         for (int j=0; j<h; ++j){
             Vec ray = sum(Vec(i-w/2, j-h/2, 0), CamDir);
-            // screen[(i*w+j)*3+1] = 0;
-            // screen[(i*w+j)*3+2] = 0;
+            double col = cube.is_on_cube(ray, CamPos);
+            if(col<0)col=0;
+            screen[(i*w+j)*3+0] = col*255;
+            screen[(i*w+j)*3+1] = col*255;
+            screen[(i*w+j)*3+2] = col*255;
         }
     }
 
