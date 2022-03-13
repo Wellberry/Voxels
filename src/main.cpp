@@ -3,12 +3,12 @@
 #include "../lib/Linal.h"
 #include <fstream>
 
-void printVec(Vec v){
-    std::cout << v.x << "\t";
-    std::cout << v.y << "\t";
-    std::cout << v.z << "\t";
-    std::cout << "\n";
-}
+// void printVec(Vec v){
+//     std::cout << v.x << "\t";
+//     std::cout << v.y << "\t";
+//     std::cout << v.z << "\t";
+//     std::cout << "\n";
+// }
 
 struct Cube{
     Vec pos = Vec(0, 5, 0);
@@ -78,7 +78,7 @@ int main(){
     for(int i=0;i<w;i++){
         for (int j=0; j<h; ++j){
             Vec ray(i-w/2, j-h/2, 5);// z - длина камеры
-            if (cube.is_cross(Vec(0, 0, -5), ray).length!=0)printVec(cube.is_cross(Vec(0, 0, -5), ray));
+            // if (cube.is_cross(Vec(0, 0, -5), ray).length!=0)printVec(cube.is_cross(Vec(0, 0, -5), ray));
             // if (cube.is_cross(Vec(0, 0, -5), ray).length!=0) screen[(i*w+j)*3] = 255;
             // else screen[(i*w+j)*3] = 0;
             // screen[(i*w+j)*3+1] = 0;

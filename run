@@ -1,0 +1,10 @@
+#!/bin/bash
+clear
+# g++ -c src/test.cpp
+g++ -c src/main.cpp
+if [ -f "main.o" ]
+then
+    g++ main.o lib/*.cpp -o build/program
+    rm main.o
+    build/program
+fi
