@@ -86,20 +86,20 @@ int main(){
             // Vec ray = sum(Vec(i-w/2, j-h/2, 0), CamDir);
             // double col = cube.is_on_cube(ray, CamPos);
             // if(col<0)col*=-1;
-            Vec r0(0, 0, 0), wid(100, 0, 0), R(w/2-i, h/2-j, 0);
+            Vec r0(50, 0, 0), wid(100, -30, 0), R(w/2-i, h/2-j, 0);
             R = sub(R, r0);
             double fi = dot(R, wid)*dot(R, wid) - dot(R, wid)*wid.squareLen();
             if(fi<0)fi=0;
             if(fi>255)fi=255;
-            screen[(i*w+j)*3+0] = fi;
+            screen[(j*w+i)*3+0] = fi;
 
-            r0 = Vec(0, 0, 0); wid = Vec(0, 0, 0); R = Vec(w/2-i, h/2-j, 0);
+            r0 = Vec(0, 0, 0); wid = Vec(15, 50, 0); R = Vec(w/2-i, h/2-j, 0);
             R = sub(R, r0);
             fi = dot(R, wid)*dot(R, wid) - dot(R, wid)*wid.squareLen();
             if(fi<0)fi=0;
             if(fi>255)fi=255;
-            screen[(i*w+j)*3+1] = fi;
-            screen[(i*w+j)*3+2] = fi/2;
+            screen[(j*w+i)*3+1] = fi;
+            screen[(j*w+i)*3+2] = fi/2;
         }
     }
 
