@@ -2,6 +2,7 @@
 #include "math.h"
 #include "../lib/Linal.h"
 #include <fstream>
+// #include "SFML/Graphics.hpp"
 
 void printVec(Vec v){
     std::cout << v.x << "\t";
@@ -16,7 +17,7 @@ public:
     Vec w = Vec(0, 2, 0);
     Vec h = cross(Vec(2, 0, 0), w).setLength(w.length);
     Vec d = cross(h, w).setLength(w.length);
-private:
+
     Vec ray_to_surf(Vec ray, Vec CamPos, Vec Spos, Vec Swidth){
         Vec res(0, 0, 0);
         double denom = dot(ray, Swidth), t1, t2;
@@ -28,7 +29,7 @@ private:
         }
         return res;
     }
-public:
+
     double is_on_cube(Vec ray, Vec CamPos){
         Vec R = ray_to_surf(ray, CamPos, pos, w);
         Vec vec_in_cube = sub(R, pos);
@@ -78,14 +79,27 @@ int main(){
 
     Cube cube;
 
+
+
     for(int i=0;i<w;++i){
         for (int j=0; j<h; ++j){
-            Vec ray = sum(Vec(i-w/2, j-h/2, 0), CamDir);
-            double col = cube.is_on_cube(ray, CamPos);
-            if(col<0)col=0;
-            screen[(i*w+j)*3+0] = col*255;
-            screen[(i*w+j)*3+1] = col*255;
-            screen[(i*w+j)*3+2] = col*255;
+            // Vec ray = sum(Vec(i-w/2, j-h/2, 0), CamDir);
+            // double col = cube.is_on_cube(ray, CamPos);
+            // if(col<0)col*=-1;
+            Vec r0(0, 0, 0), wid(100, 0, 0), R(w/2-i, h/2-j, 0);
+            R = sub(R, r0);
+            double fi = dot(R, wid)*dot(R, wid) - dot(R, wid)*wid.squareLen();
+            if(fi<0)fi=0;
+            if(fi>255)fi=255;
+            screen[(i*w+j)*3+0] = fi;
+
+            r0 = Vec(0, 0, 0); wid = Vec(0, 0, 0); R = Vec(w/2-i, h/2-j, 0);
+            R = sub(R, r0);
+            fi = dot(R, wid)*dot(R, wid) - dot(R, wid)*wid.squareLen();
+            if(fi<0)fi=0;
+            if(fi>255)fi=255;
+            screen[(i*w+j)*3+1] = fi;
+            screen[(i*w+j)*3+2] = fi/2;
         }
     }
 
