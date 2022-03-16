@@ -1,10 +1,11 @@
 #!/bin/bash
 clear
-# g++ -c src/test.cpp
-g++ -c src/main.cpp
+# g++ -c src/test.cpp -I /home/oleg/SFML/include -o main.o
+g++ -c src/main.cpp -I ~/SFML/include
 if [ -f "main.o" ]
 then
-    g++ main.o lib/*.cpp -o build/program
+    export LD_LIBRARY_PATH=~/SFML/lib
+    g++ main.o lib/*.cpp -o build/program -L ~/SFML/lib -lsfml-window -lsfml-graphics -lsfml-system
     rm main.o
     build/program
 fi
