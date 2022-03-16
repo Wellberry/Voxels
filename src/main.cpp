@@ -93,7 +93,9 @@ void drawScreen(int* screen, int w, int h){
             screen[(j*w+i)*3+0] = Color;
             screen[(j*w+i)*3+1] = Color;
             screen[(j*w+i)*3+2] = Color;
-
+/*
+Don't draw vertexes!!!
+*/
             // vertexes[j*w+i] = sf::Vertex(sf::Vector2f(i, j), 
             //                             sf::Color(screen[(j*w+i)*3+0],
             //                                     screen[(j*w+i)*3+0],
