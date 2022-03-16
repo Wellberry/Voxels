@@ -11,14 +11,17 @@ void printVec(Vec v){
     std::cout << "\n";
 }
 
-Vec ray_to_surf(Vec ray, Vec CamPos, Vec Spos, Vec Swidth){
-    double denom = dot(ray, Swidth), t1=0, t2;
-    if(denom*denom>1e-10){
-        t1 = dot(sub(Spos, CamPos), Swidth)/denom;
-        t2 = dot(sub(sum(Spos, Swidth), CamPos), Swidth)/denom;
-        if(t2<t1)t1=-t2;
-    }
-    return ray.scale(t1);
+Vec CamPos(10, 0, 0), 
+    CamDir(-10, 0, 0), 
+    lightPos(5, 0, 0), 
+    LightDir = Vec(1, 1, 1).norm();
+
+Vec ray_to_closer_surf(Vec ray, Vec pos, Vec norm){
+    double denom = dot(ray, norm), t1, t2;
+    t1 = dot(sub(pos, CamPos), norm)/denom;
+    t2 = dot(sub(sum(pos, norm),CamPos), norm)/denom;
+    if(t2>t1)t1=-t2;
+    return sum(ray.scale(t1), CamPos);
 }
 
 void createImage(int* screen, int w, int h){
@@ -40,37 +43,54 @@ void createImage(int* screen, int w, int h){
     image.close();
 }
 
-Vec CamPos(5, 0, 0), CamDir(-5, 0, 0), lightPos(5, 0, 0), LightDir = Vec(-3, 0, 3).norm();
-
 struct Cube{
 public:
-    Vec pos = Vec(-5, 0, 0);
-    Vec w = Vec(0, 2, 0);
-    Vec h = Vec(0, 0, 2);
-    // Vec d = Vec(2, 0, 0);
+    Vec pos = Vec(-47, 0, 0);
+    Vec w = Vec(0, 50, 0);
+    Vec h = Vec(0, 0, 50);
+    Vec d = Vec(50, 0, 0);
+
     // Vec h = cross(Vec(1, 0, 0), w).setLength(w.length);
-    Vec d = cross(h, w).setLength(w.length);
+    // Vec d = cross(h, w).setLength(w.length);
 
-    double is_on_cube(Vec ray, Vec CamPos){
+private:
+    double fi(Vec R, Vec norm){
+        //Formula of surfaces: fi(R) = (R-pos, norm)^2 - (R-pos, norm)*norm^2
+        return dot(sub(R, pos), norm)*dot(sub(R, pos), norm) - dot(sub(R, pos), norm)*norm.squareLen();
+    }
+
+public:
+    double is_on_cube(Vec ray){
         double fi_w, fi_h, fi_d;
+        Vec toCube(0, 0, 0);
 
-        Vec R = ray_to_surf(ray, CamPos, pos, w);
-        Vec vec_in_cube = sub(R, pos);
-        fi_h =  dot(vec_in_cube, h)*dot(vec_in_cube, h) - dot(vec_in_cube, h)*h.squareLen();
-        fi_d =  dot(vec_in_cube, d)*dot(vec_in_cube, d) - dot(vec_in_cube, d)*d.squareLen();
-        if(fi_h<0 & fi_d<0)return dot(LightDir, w.norm());
-
-        R = ray_to_surf(ray, CamPos, pos, h);
-        vec_in_cube = sub(R, pos);
-        fi_w =  dot(vec_in_cube, w)*dot(vec_in_cube, w) - dot(vec_in_cube, w)*w.squareLen();
-        fi_d =  dot(vec_in_cube, d)*dot(vec_in_cube, d) - dot(vec_in_cube, d)*d.squareLen();
-        if(fi_w<=0 & fi_d<=0)return dot(LightDir, h.norm());
-
-        R = ray_to_surf(ray, CamPos, pos, d);
-        vec_in_cube = sub(R, pos);
-        fi_w =  dot(vec_in_cube, w)*dot(vec_in_cube, w) - dot(vec_in_cube, w)*w.squareLen();
-        fi_h =  dot(vec_in_cube, h)*dot(vec_in_cube, h) - dot(vec_in_cube, h)*h.squareLen();
-        if(fi_w<=0 & fi_h<=0)return dot(LightDir, d.norm());
+        if(dot(ray, w)*dot(ray, w)>=1e-3){
+            toCube = ray_to_closer_surf(ray, pos, w);
+            fi_d = fi(toCube, d);
+            fi_h = fi(toCube, h);
+            if(fi_d<=0 & fi_h<=0){
+                if(dot(LightDir, w.norm())>0)return dot(LightDir, w.norm());
+                else return 0;
+            }
+        }
+        if(dot(ray, h)*dot(ray, h)>=1e-3){
+            toCube = ray_to_closer_surf(ray, pos, h);
+            fi_w = fi(toCube, w);
+            fi_d = fi(toCube, d);
+            if(fi_w<=0 & fi_d<=0){
+                if(dot(LightDir, h.norm())>0)return dot(LightDir, h.norm());
+                else return 0;
+            }
+        }
+        if(dot(ray, d)*dot(ray, d)>=1e-3){
+            toCube = ray_to_closer_surf(ray, pos, d);
+            fi_w = fi(toCube, w);
+            fi_h = fi(toCube, h);
+            if(fi_w<=0 & fi_h<=0){
+                if(dot(LightDir, d.norm())>0)return dot(LightDir, d.norm());
+                else return 0;
+            }
+        }
         return 0;
     }
 };
@@ -79,58 +99,35 @@ Cube cube;
 
 void drawScreen(int* screen, int w, int h){
 
-    for(int i=0;i<w;++i){
-        for (int j=0; j<h; ++j){
+    for(int j=0;j<h;j++){
+        for (int i=0; i<w; i++){
 
-            Vec ray = sum(Vec(w/2-i, h/2-j, 0), CamDir);
-            double col = cube.is_on_cube(ray, CamPos);
-            if(col<0)col=0;
+            Vec ray = sum(Vec(0, i-w/2, h/2-j), CamDir);
+            double col = cube.is_on_cube(ray);
 
             int Color = col*255;
-            if(Color<0)Color=0;
-            if(Color>255)Color=255;
-
-            screen[(j*w+i)*3+0] = Color;
-            screen[(j*w+i)*3+1] = Color;
-            screen[(j*w+i)*3+2] = Color;
-/*
-Don't draw vertexes!!!
-*/
-            // vertexes[j*w+i] = sf::Vertex(sf::Vector2f(i, j), 
-            //                             sf::Color(screen[(j*w+i)*3+0],
-            //                                     screen[(j*w+i)*3+0],
-            //                                     screen[(j*w+i)*3+0]));
-
-            // window->draw(vertexes, w*h, sf::Points);
+            if(Color<=0){
+                screen[(j*h+i)*3+0] = 0;
+                screen[(j*h+i)*3+1] = 20;
+                screen[(j*h+i)*3+2] = 0;
+            }else{
+                if(Color>255)Color=255;
+                screen[(j*h+i)*3+0] = Color;
+                screen[(j*h+i)*3+1] = Color;
+                screen[(j*h+i)*3+2] = Color;
+            }
         }
     }
 }
 
 int main(){
     
-    int w = 400, h = 400;
+    int w = 600, h = 400;
+
+
     int* screen = new int[w*h*3];
-
-    // sf::RenderWindow window(sf::VideoMode(w, h), "3D Graphics");
-    // sf::Vertex vertexes[w*h];
-
-    // while (window.isOpen()){
-
-    //     sf::Event event;
-    //     while (window.pollEvent(event))
-    //     {
-    //         if (event.type == sf::Event::Closed)
-    //             window.close();
-    //     }
-
-    //     window.clear();
-        drawScreen(screen, w, h);
-    //     window.display();
-
-    // }
+    drawScreen(screen, w, h);
     createImage(screen, w, h);
-
-    // delete[] vertexes;
     delete[] screen;
 
     return 0;
